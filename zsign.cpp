@@ -10,6 +10,7 @@
 const struct option options[] = {
         {"debug",          no_argument,       NULL, 'd'},
         {"force",          no_argument,       NULL, 'f'},
+        {"unzip",          no_argument,       NULL, 'u'},
         {"verbose",        no_argument,       NULL, 'v'},
         {"cert",           required_argument, NULL, 'c'},
         {"pkey",           required_argument, NULL, 'k'},
@@ -38,6 +39,7 @@ int usage() {
     ZLog::Print("-c, --cert\t\tPath to certificate file. (PEM or DER format)\n");
     ZLog::Print("-d, --debug\t\tGenerate debug output files. (.zsign_debug folder)\n");
     ZLog::Print("-f, --force\t\tForce sign without cache when signing folder.\n");
+    ZLog::Print("-u, --unzip\t\tSign unzip folder\n");
     ZLog::Print("-o, --output\t\tPath to output ipa file.\n");
     ZLog::Print("-p, --password\t\tPassword for private key or p12 file.\n");
     ZLog::Print("-b, --bundle_id\t\tNew bundle id to change.\n");
@@ -60,6 +62,7 @@ int main(int argc, char *argv[]) {
     ZTimer gtimer;
 
     bool bForce = false;
+    bool bUnzip = false;
     bool bInstall = false;
     bool bWeakInject = false;
     uint32_t uZipLevel = -1;
@@ -141,6 +144,9 @@ int main(int argc, char *argv[]) {
                 break;
             case 'f':
                 bForce = true;
+                break;
+            case 'u':
+                bUnzip = true;
                 break;
             case 'c':
                 strCertFile = optarg;
@@ -261,16 +267,20 @@ int main(int argc, char *argv[]) {
         //strFolder目录不存在创建多级目录
         SystemExec("mkdir -p '%s'", strFolder.c_str());
 
-        ZLog::PrintV("from sign.ipadump.com>>> Unzip:\t%s (%s) -> %s ... \n", strPath.c_str(),
-                     GetFileSizeString(strPath.c_str()).c_str(),
-                     strFolder.c_str());
-        RemoveFolder(strFolder.c_str());
-        if (!SystemExec("unzip -qq -n -d '%s' '%s'", strFolder.c_str(), strPath.c_str())) {
+        if (bUnzip) {
+            timer.PrintResult(true, "from sign.ipadump.com>>> sing unzip folder，not unzip");
+        } else
+            ZLog::PrintV("from sign.ipadump.com>>> Unzip:\t%s (%s) -> %s ... \n", strPath.c_str(),
+                         GetFileSizeString(strPath.c_str()).c_str(),
+                         strFolder.c_str());
             RemoveFolder(strFolder.c_str());
-            ZLog::ErrorV("from sign.ipadump.com>>> Unzip Failed!\n");
-            return -1;
+            if (!SystemExec("unzip -qq -n -d '%s' '%s'", strFolder.c_str(), strPath.c_str())) {
+                RemoveFolder(strFolder.c_str());
+                ZLog::ErrorV("from sign.ipadump.com>>> Unzip Failed!\n");
+                return -1;
+            }
+            timer.PrintResult(true, "from sign.ipadump.com>>> Unzip OK!");
         }
-        timer.PrintResult(true, "from sign.ipadump.com>>> Unzip OK!");
     }
 
     timer.Reset();
