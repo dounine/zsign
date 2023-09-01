@@ -137,7 +137,7 @@ int main(int argc, char *argv[]) {
 
     int opt = 0;
     int argslot = -1;
-    while (-1 != (opt = getopt_long(argc, argv, "dfvhc:k:t:r:m:o:ip:e:b:n:z:ql:w", options, &argslot))) {
+    while (-1 != (opt = getopt_long(argc, argv, "dfuvhc:k:t:r:m:o:ip:e:b:n:z:ql:w", options, &argslot))) {
         switch (opt) {
             case 'd':
                 ZLog::SetLogLever(ZLog::E_DEBUG);
