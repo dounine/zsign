@@ -269,7 +269,7 @@ int main(int argc, char *argv[]) {
 
         if (bUnzip) {
             timer.PrintResult(true, "from sign.ipadump.com>>> sing unzip folder，not unzip");
-        } else
+        } else {
             ZLog::PrintV("from sign.ipadump.com>>> Unzip:\t%s (%s) -> %s ... \n", strPath.c_str(),
                          GetFileSizeString(strPath.c_str()).c_str(),
                          strFolder.c_str());
