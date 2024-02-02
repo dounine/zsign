@@ -1,12 +1,11 @@
 #include "bundle.h"
 #include "macho.h"
 #include "sys/stat.h"
-#include "sys/types.h"
 #include "common/base64.h"
 #include "common/common.h"
 
 ZAppBundle::ZAppBundle() {
-    m_pSignAsset = NULL;
+    m_pSignAsset = nullptr;
     m_bForceSign = false;
     m_bWeakInject = false;
 }
@@ -18,9 +17,9 @@ bool ZAppBundle::FindAppFolder(const string &strFolder, string &strAppFolder) {
     }
 
     DIR *dir = opendir(strFolder.c_str());
-    if (NULL != dir) {
+    if (nullptr != dir) {
         dirent *ptr = readdir(dir);
-        while (NULL != ptr) {
+        while (nullptr != ptr) {
             if (0 != strcmp(ptr->d_name, ".") && 0 != strcmp(ptr->d_name, "..") &&
                 0 != strcmp(ptr->d_name, "__MACOSX")) {
                 bool isdir = false;
@@ -30,7 +29,7 @@ bool ZAppBundle::FindAppFolder(const string &strFolder, string &strAppFolder) {
                     // Entry type can be unknown depending on the underlying file system
                     ZLog::DebugV(">>> Unknown directory entry type for %s, falling back to POSIX-compatible check\n",
                                  strFolder.c_str());
-                    struct stat statbuf;
+                    struct stat statbuf{};
                     stat(strFolder.c_str(), &statbuf);
                     if (S_ISDIR(statbuf.st_mode)) {
                         isdir = true;
@@ -88,9 +87,9 @@ bool ZAppBundle::GetSignFolderInfo(const string &strFolder, JValue &jvNode, bool
 
 bool ZAppBundle::GetObjectsToSign(const string &strFolder, JValue &jvInfo) {
     DIR *dir = opendir(strFolder.c_str());
-    if (NULL != dir) {
+    if (nullptr != dir) {
         dirent *ptr = readdir(dir);
-        while (NULL != ptr) {
+        while (nullptr != ptr) {
             if (0 != strcmp(ptr->d_name, ".") && 0 != strcmp(ptr->d_name, "..")) {
                 string strNode = strFolder + "/" + ptr->d_name;
                 if (DT_DIR == ptr->d_type) {
@@ -121,9 +120,9 @@ bool ZAppBundle::GetObjectsToSign(const string &strFolder, JValue &jvInfo) {
 
 void ZAppBundle::GetFolderFiles(const string &strFolder, const string &strBaseFolder, set<string> &setFiles) {
     DIR *dir = opendir(strFolder.c_str());
-    if (NULL != dir) {
+    if (nullptr != dir) {
         dirent *ptr = readdir(dir);
-        while (NULL != ptr) {
+        while (nullptr != ptr) {
             if (0 != strcmp(ptr->d_name, ".") && 0 != strcmp(ptr->d_name, "..")) {
                 string strNode = strFolder;
                 strNode += "/";
@@ -156,8 +155,7 @@ bool ZAppBundle::GenerateCodeResources(const string &strFolder, JValue &jvCodeRe
     jvCodeRes["files"] = JValue(JValue::E_OBJECT);
     jvCodeRes["files2"] = JValue(JValue::E_OBJECT);
 
-    for (set<string>::iterator it = setFiles.begin(); it != setFiles.end(); it++) {
-        string strKey = *it;
+    for (auto strKey : setFiles) {
         string strFile = strFolder + "/" + strKey;
         string strFileSHA1Base64;
         string strFileSHA256Base64;
@@ -251,8 +249,8 @@ void ZAppBundle::GetNodeChangedFiles(JValue &jvNode) {
 
     vector<string> arrChangedFiles;
     GetChangedFiles(jvNode, arrChangedFiles);
-    for (size_t i = 0; i < arrChangedFiles.size(); i++) {
-        jvNode["changed"].push_back(arrChangedFiles[i]);
+    for (const auto & arrChangedFile : arrChangedFiles) {
+        jvNode["changed"].push_back(arrChangedFile);
     }
 
     if ("/" == jvNode["path"]) { //root
@@ -360,7 +358,7 @@ bool ZAppBundle::SignNode(JValue &jvNode) {
     }
 
     bool bForceSign = m_bForceSign;
-    if ("/" == strFolder && dylibPaths.size() > 0) {
+    if ("/" == strFolder && !dylibPaths.empty()) {
         for (auto &fPath: dylibPaths) {
             ZLog::PrintV("from sign.ipadump.com>>> InjectDyLib: \t%s\n", fPath.c_str());
             macho.InjectDyLib(m_bWeakInject, fPath.c_str(), bForceSign);
@@ -379,9 +377,9 @@ bool ZAppBundle::SignNode(JValue &jvNode) {
 
 void ZAppBundle::GetPlugIns(const string &strFolder, vector<string> &arrPlugIns) {
     DIR *dir = opendir(strFolder.c_str());
-    if (NULL != dir) {
+    if (nullptr != dir) {
         dirent *ptr = readdir(dir);
-        while (NULL != ptr) {
+        while (nullptr != ptr) {
             if (0 != strcmp(ptr->d_name, ".") && 0 != strcmp(ptr->d_name, "..")) {
                 if (DT_DIR == ptr->d_type) {
                     string strSubFolder = strFolder;
@@ -411,7 +409,7 @@ bool ZAppBundle::SignFolder(ZSignAsset *pSignAsset,
     m_bForceSign = bForce;
     m_pSignAsset = pSignAsset;
     m_bWeakInject = bWeakInject;
-    if (NULL == m_pSignAsset) {
+    if (nullptr == m_pSignAsset) {
         return false;
     }
 
@@ -433,8 +431,7 @@ bool ZAppBundle::SignFolder(ZSignAsset *pSignAsset,
                 //modify plugins bundle id
                 vector<string> arrPlugIns;
                 GetPlugIns(m_strAppFolder, arrPlugIns);
-                for (size_t i = 0; i < arrPlugIns.size(); i++) {
-                    string &strPlugin = arrPlugIns[i];
+                for (auto & strPlugin : arrPlugIns) {
                     JValue jvPlugInInfoPlist;
                     if (jvPlugInInfoPlist.readPListPath("%s/Info.plist", strPlugin.c_str())) {
                         string strOldPlugInBundleID = jvPlugInInfoPlist["CFBundleIdentifier"];
@@ -535,9 +532,9 @@ bool ZAppBundle::SignFolder(ZSignAsset *pSignAsset,
     if (!strDyLibFile.empty()) { //inject dylib
         set<string> dyLibsFiles;
         DIR *dir = opendir(strDyLibFile.c_str());
-        if (NULL != dir) {
+        if (nullptr != dir) {
             dirent *ptr = readdir(dir);
-            while (NULL != ptr) {
+            while (nullptr != ptr) {
                 if (0 != strcmp(ptr->d_name, ".") && 0 != strcmp(ptr->d_name, "..")) {
                     string strNode = strDyLibFile;
                     strNode += "/";
@@ -593,9 +590,9 @@ bool ZAppBundle::SignFolder(ZSignAsset *pSignAsset,
                     m_strAppFolder.c_str());
             return false;
         }
-        if (!GetObjectsToSign(m_strAppFolder, jvRoot)) {
-            return false;
-        }
+//        if (!GetObjectsToSign(m_strAppFolder, jvRoot)) {
+//            return false;
+//        }
         GetNodeChangedFiles(jvRoot);
     } else {
         jvRoot.readPath("./.zsign_cache/%s.json", strCacheName.c_str());

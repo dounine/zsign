@@ -1,6 +1,5 @@
 #include "common.h"
 #include "base64.h"
-#include <cinttypes>
 #include <sys/stat.h>
 #include <inttypes.h>
 #include <openssl/sha.h>
@@ -26,7 +25,7 @@
     }
 
 bool IsRegularFile(const char *file) {
-    struct stat info;
+    struct stat info{};
     stat(file, &info);
     return S_ISREG(info.st_mode);
 }
@@ -34,38 +33,38 @@ bool IsRegularFile(const char *file) {
 void *MapFile(const char *path, size_t offset, size_t size, size_t *psize, bool ro) {
     int fd = open(path, ro ? O_RDONLY : O_RDWR);
     if (fd <= 0) {
-        return NULL;
+        return nullptr;
     }
 
     if (0 == size) {
-        struct stat stat;
+        struct stat stat{};
         fstat(fd, &stat);
         size = stat.st_size;
     }
 
-    if (NULL != psize) {
+    if (nullptr != psize) {
         *psize = size;
     }
 
-    void *base = mmap(NULL, size, ro ? PROT_READ : PROT_READ | PROT_WRITE, MAP_SHARED, fd, offset);
+    void *base = mmap(nullptr, size, ro ? PROT_READ : PROT_READ | PROT_WRITE, MAP_SHARED, fd, offset);
     close(fd);
 
     if (MAP_FAILED == base) {
-        base = NULL;
+        base = nullptr;
     }
 
     return base;
 }
 
 bool WriteFile(const char *szFile, const char *szData, size_t sLen) {
-    if (NULL == szFile) {
+    if (nullptr == szFile) {
         return false;
     }
 
     FILE *fp = fopen(szFile, "wb");
-    if (NULL != fp) {
+    if (nullptr != fp) {
         int64_t towrite = sLen;
-        if (NULL != szData) {
+        if (nullptr != szData) {
             while (towrite > 0) {
                 int64_t nwrite = fwrite(szData + (sLen - towrite), 1, towrite, fp);
                 if (nwrite <= 0) {
@@ -75,7 +74,7 @@ bool WriteFile(const char *szFile, const char *szData, size_t sLen) {
             }
         }
         fclose(fp);
-        return (towrite > 0) ? false : true;
+        return towrite <= 0;
     } else {
         ZLog::ErrorV("WriteFile: Failed in fopen! %s, %s\n", szFile, strerror(errno));
     }
@@ -105,7 +104,7 @@ bool ReadFile(const char *szFile, string &strData) {
     }
 
     FILE *fp = fopen(szFile, "rb");
-    if (NULL != fp) {
+    if (nullptr != fp) {
         strData.reserve(GetFileSize(fileno(fp)));
 
         char buf[4096] = {0};
@@ -130,7 +129,7 @@ bool ReadFile(string &strData, const char *szFormatPath, ...) {
 
 bool AppendFile(const char *szFile, const char *szData, size_t sLen) {
     FILE *fp = fopen(szFile, "ab+");
-    if (NULL != fp) {
+    if (nullptr != fp) {
         int64_t towrite = sLen;
         while (towrite > 0) {
             int64_t nwrite = fwrite(szData + (sLen - towrite), 1, towrite, fp);
@@ -210,7 +209,7 @@ bool RemoveFileV(const char *szFormatPath, ...) {
 }
 
 bool IsFileExists(const char *szFile) {
-    if (NULL == szFile) {
+    if (nullptr == szFile) {
         return false;
     }
     return (0 == access(szFile, F_OK));
@@ -222,9 +221,9 @@ bool IsFileExistsV(const char *szFormatPath, ...) {
 }
 
 bool IsZipFile(const char *szFile) {
-    if (NULL != szFile && !IsFolder(szFile)) {
+    if (nullptr != szFile && !IsFolder(szFile)) {
         FILE *fp = fopen(szFile, "rb");
-        if (NULL != fp) {
+        if (nullptr != fp) {
             uint8_t buf[2] = {0};
             fread(buf, 1, 2, fp);
             fclose(fp);
@@ -251,7 +250,7 @@ string GetCanonicalizePath(const char *szPath) {
                 strPath += szPath;
             }
 #else
-            if (NULL != realpath("./", path)) {
+            if (nullptr != realpath("./", path)) {
                 strPath = path;
                 strPath += "/";
                 strPath += szPath;
@@ -265,7 +264,7 @@ string GetCanonicalizePath(const char *szPath) {
 
 int64_t GetFileSize(int fd) {
     int64_t nSize = 0;
-    struct stat stbuf;
+    struct stat stbuf{};
     if (0 == fstat(fd, &stbuf)) {
         if (S_ISREG(stbuf.st_mode)) {
             nSize = stbuf.st_size;
@@ -298,18 +297,18 @@ string FormatSize(int64_t size, int64_t base) {
     char ret[64] = {0};
     if (size > base * base * base * base) {
         fsize = (size * 1.0) / (base * base * base * base);
-        sprintf(ret, "%.2f TB", fsize);
+        snprintf(ret, sizeof(ret), "%.2f TB", fsize);
     } else if (size > base * base * base) {
         fsize = (size * 1.0) / (base * base * base);
-        sprintf(ret, "%.2f GB", fsize);
+        snprintf(ret, sizeof(ret), "%.2f GB", fsize);
     } else if (size > base * base) {
         fsize = (size * 1.0) / (base * base);
-        sprintf(ret, "%.2f MB", fsize);
+        snprintf(ret, sizeof(ret), "%.2f MB", fsize);
     } else if (size > base) {
         fsize = (size * 1.0) / (base);
-        sprintf(ret, "%.2f KB", fsize);
+        snprintf(ret, sizeof(ret), "%.2f KB", fsize);
     } else {
-        sprintf(ret, "%" PRId64 " B", size);
+        snprintf(ret, sizeof(ret), "%" PRId64 " B", size);
     }
     return ret;
 }
@@ -332,7 +331,7 @@ time_t GetUnixStamp() {
 
 uint64_t GetMicroSecond() {
     struct timeval tv = {0};
-    gettimeofday(&tv, NULL);
+    gettimeofday(&tv, nullptr);
     return tv.tv_sec * 1000000 + tv.tv_usec;
 }
 
@@ -515,7 +514,7 @@ bool SHASumBase64File(const char *szFile, string &strSHA1Base64, string &strSHA2
 }
 
 ZBuffer::ZBuffer() {
-    m_pData = NULL;
+    m_pData = nullptr;
     m_uSize = 0;
 }
 
@@ -529,9 +528,9 @@ char *ZBuffer::GetBuffer(uint32_t uSize) {
     }
 
     char *pData = (char *) realloc(m_pData, uSize);
-    if (NULL == pData) {
+    if (nullptr == pData) {
         Free();
-        return NULL;
+        return nullptr;
     }
 
     m_pData = pData;
@@ -540,10 +539,10 @@ char *ZBuffer::GetBuffer(uint32_t uSize) {
 }
 
 void ZBuffer::Free() {
-    if (NULL != m_pData) {
+    if (nullptr != m_pData) {
         free(m_pData);
     }
-    m_pData = NULL;
+    m_pData = nullptr;
     m_uSize = 0;
 }
 

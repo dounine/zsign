@@ -2,11 +2,10 @@
 #include "common/json.h"
 #include "common/mach-o.h"
 #include "openssl.h"
-#include "signing.h"
 #include "macho.h"
 
 ZMachO::ZMachO() {
-    m_pBase = NULL;
+    m_pBase = nullptr;
     m_sSize = 0;
     m_bCSRealloced = false;
 }
@@ -36,7 +35,7 @@ bool ZMachO::Free() {
 }
 
 bool ZMachO::NewArchO(uint8_t *pBase, uint32_t uLength) {
-    ZArchO *archo = new ZArchO();
+    auto *archo = new ZArchO();
     if (archo->Init(pBase, uLength)) {
         m_arrArchOes.push_back(archo);
         return true;
@@ -46,11 +45,10 @@ bool ZMachO::NewArchO(uint8_t *pBase, uint32_t uLength) {
 }
 
 void ZMachO::FreeArchOes() {
-    for (size_t i = 0; i < m_arrArchOes.size(); i++) {
-        ZArchO *archo = m_arrArchOes[i];
+    for (auto archo : m_arrArchOes) {
         delete archo;
     }
-    m_pBase = NULL;
+    m_pBase = nullptr;
     m_sSize = 0;
     m_arrArchOes.clear();
 }
@@ -60,13 +58,13 @@ bool ZMachO::OpenFile(const char *szPath) {
 
     m_sSize = 0;
     m_pBase = (uint8_t *) MapFile(szPath, 0, 0, &m_sSize, false);
-    if (NULL != m_pBase) {
+    if (nullptr != m_pBase) {
         uint32_t magic = *((uint32_t *) m_pBase);
         if (FAT_CIGAM == magic || FAT_MAGIC == magic) {
-            fat_header *pFatHeader = (fat_header *) m_pBase;
+            auto *pFatHeader = (fat_header *) m_pBase;
             int nFatArch = (FAT_MAGIC == magic) ? pFatHeader->nfat_arch : LE(pFatHeader->nfat_arch);
             for (int i = 0; i < nFatArch; i++) {
-                fat_arch *pFatArch = (fat_arch *) (m_pBase + sizeof(fat_header) + sizeof(fat_arch) * i);
+                auto *pFatArch = (fat_arch *) (m_pBase + sizeof(fat_header) + sizeof(fat_arch) * i);
                 uint8_t *pArchBase = m_pBase + ((FAT_MAGIC == magic) ? pFatArch->offset : LE(pFatArch->offset));
                 uint32_t uArchLength = (FAT_MAGIC == magic) ? pFatArch->size : LE(pFatArch->size);
                 if (!NewArchO(pArchBase, uArchLength)) {
@@ -89,32 +87,31 @@ bool ZMachO::OpenFile(const char *szPath) {
 }
 
 bool ZMachO::CloseFile() {
-    if (NULL == m_pBase || m_sSize <= 0) {
+    if (nullptr == m_pBase || m_sSize <= 0) {
         return false;
     }
 
     if ((munmap((void *) m_pBase, m_sSize)) < 0) {
-        ZLog::ErrorV("from sign.ipadump.com>>> CodeSign Write(munmap) Failed! Error: %p, %lu, %s\n", m_pBase, m_sSize, strerror(errno));
+        ZLog::ErrorV("from sign.ipadump.com>>> CodeSign Write(munmap) Failed! Error: %p, %lu, %s\n", m_pBase, m_sSize,
+                     strerror(errno));
         return false;
     }
     return true;
 }
 
 void ZMachO::PrintInfo() {
-    for (size_t i = 0; i < m_arrArchOes.size(); i++) {
-        ZArchO *archo = m_arrArchOes[i];
+    for (auto archo : m_arrArchOes) {
         archo->PrintInfo();
     }
 }
 
 bool ZMachO::Sign(ZSignAsset *pSignAsset, bool bForce, string strBundleId, string strInfoPlistSHA1,
                   string strInfoPlistSHA256, const string &strCodeResourcesData) {
-    if (NULL == m_pBase || m_arrArchOes.empty()) {
+    if (nullptr == m_pBase || m_arrArchOes.empty()) {
         return false;
     }
 
-    for (size_t i = 0; i < m_arrArchOes.size(); i++) {
-        ZArchO *archo = m_arrArchOes[i];
+    for (auto archo : m_arrArchOes) {
         if (strBundleId.empty()) {
             JValue jvInfo;
             jvInfo.readPList(archo->m_strInfoPlist);
@@ -205,8 +202,7 @@ bool ZMachO::ReallocCodeSignSpace() {
 
         string strFatHeader;
         strFatHeader.append((const char *) &fath, sizeof(fat_header));
-        for (size_t i = 0; i < arrArches.size(); i++) {
-            fat_arch &arch = arrArches[i];
+        for (auto & arch : arrArches) {
             strFatHeader.append((const char *) &arch, sizeof(fat_arch));
         }
 
@@ -219,8 +215,8 @@ bool ZMachO::ReallocCodeSignSpace() {
         for (size_t i = 0; i < arrArches.size(); i++) {
             size_t sSize = 0;
             string strNewArchOFile = m_strFile + ".archo." + JValue((int) i).asString();
-            uint8_t *pData = (uint8_t *) MapFile(strNewArchOFile.c_str(), 0, 0, &sSize, true);
-            if (NULL == pData) {
+            auto *pData = (uint8_t *) MapFile(strNewArchOFile.c_str(), 0, 0, &sSize, true);
+            if (nullptr == pData) {
                 RemoveFile(strNewFatMachOFile.c_str());
                 return false;
             }
@@ -247,8 +243,8 @@ bool ZMachO::InjectDyLib(bool bWeakInject, const char *szDyLibPath, bool &bCreat
     ZLog::WarnV("from sign.ipadump.com>>> Inject DyLib: %s ... \n", szDyLibPath);
 
     vector<uint32_t> arrMachOesSizes;
-    for (size_t i = 0; i < m_arrArchOes.size(); i++) {
-        if (!m_arrArchOes[i]->InjectDyLib(bWeakInject, szDyLibPath, bCreate)) {
+    for (auto & m_arrArchOe : m_arrArchOes) {
+        if (!m_arrArchOe->InjectDyLib(bWeakInject, szDyLibPath, bCreate)) {
             ZLog::Error("from sign.ipadump.com>>> Failed!\n");
             return false;
         }

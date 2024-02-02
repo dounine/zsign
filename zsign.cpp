@@ -3,31 +3,29 @@
 #include "openssl.h"
 #include "macho.h"
 #include "bundle.h"
-#include <libgen.h>
-#include <dirent.h>
 #include <getopt.h>
 
 const struct option options[] = {
-        {"debug",          no_argument,       NULL, 'd'},
-        {"force",          no_argument,       NULL, 'f'},
-        {"unzip",          no_argument,       NULL, 'u'},
-        {"verbose",        no_argument,       NULL, 'v'},
-        {"cert",           required_argument, NULL, 'c'},
-        {"pkey",           required_argument, NULL, 'k'},
-        {"prov",           required_argument, NULL, 'm'},
-        {"password",       required_argument, NULL, 'p'},
-        {"bundle_id",      required_argument, NULL, 'b'},
-        {"bundle_name",    required_argument, NULL, 'n'},
-        {"bundle_version", required_argument, NULL, 'r'},
-        {"tmp_fold",       required_argument, NULL, 't'},
-        {"entitlements",   required_argument, NULL, 'e'},
-        {"output",         required_argument, NULL, 'o'},
-        {"zip_level",      required_argument, NULL, 'z'},
-        {"dylib",          required_argument, NULL, 'l'},
-        {"weak",           no_argument,       NULL, 'w'},
-        {"install",        no_argument,       NULL, 'i'},
-        {"quiet",          no_argument,       NULL, 'q'},
-        {"help",           no_argument,       NULL, 'h'},
+        {"debug",          no_argument,       nullptr, 'd'},
+        {"force",          no_argument,       nullptr, 'f'},
+        {"unzip",          no_argument,       nullptr, 'u'},
+        {"verbose",        no_argument,       nullptr, 'v'},
+        {"cert",           required_argument, nullptr, 'c'},
+        {"pkey",           required_argument, nullptr, 'k'},
+        {"prov",           required_argument, nullptr, 'm'},
+        {"password",       required_argument, nullptr, 'p'},
+        {"bundle_id",      required_argument, nullptr, 'b'},
+        {"bundle_name",    required_argument, nullptr, 'n'},
+        {"bundle_version", required_argument, nullptr, 'r'},
+        {"tmp_fold",       required_argument, nullptr, 't'},
+        {"entitlements",   required_argument, nullptr, 'e'},
+        {"output",         required_argument, nullptr, 'o'},
+        {"zip_level",      required_argument, nullptr, 'z'},
+        {"dylib",          required_argument, nullptr, 'l'},
+        {"weak",           no_argument,       nullptr, 'w'},
+        {"install",        no_argument,       nullptr, 'i'},
+        {"quiet",          no_argument,       nullptr, 'q'},
+        {"help",           no_argument,       nullptr, 'h'},
         {}};
 
 int usage() {
@@ -50,7 +48,6 @@ int usage() {
     ZLog::Print("-z, --zip_level\t\tCompressed level when output the ipa file. (0-9)\n");
     ZLog::Print("-l, --dylib\t\tPath to inject dylib file.\n");
     ZLog::Print("-w, --weak\t\tInject dylib as LC_LOAD_WEAK_DYLIB.\n");
-    ZLog::Print("-i, --install\t\tInstall ipa file using ideviceinstaller command for test.\n");
     ZLog::Print("-q, --quiet\t\tQuiet operation.\n");
     ZLog::Print("-v, --version\t\tShows version.\n");
     ZLog::Print("-h, --help\t\tShows help (this message).\n");
@@ -63,7 +60,6 @@ int main(int argc, char *argv[]) {
 
     bool bForce = false;
     bool bUnzip = false;
-    bool bInstall = false;
     bool bWeakInject = false;
     uint32_t uZipLevel = -1;
 
@@ -137,7 +133,7 @@ int main(int argc, char *argv[]) {
 
     int opt = 0;
     int argslot = -1;
-    while (-1 != (opt = getopt_long(argc, argv, "dfuvhc:k:t:r:m:o:ip:e:b:n:z:ql:w", options, &argslot))) {
+    while (-1 != (opt = getopt_long(argc, argv, "dfuvhc:k:t:r:m:o:p:e:b:n:z:ql:w", options, &argslot))) {
         switch (opt) {
             case 'd':
                 ZLog::SetLogLever(ZLog::E_DEBUG);
@@ -174,9 +170,6 @@ int main(int argc, char *argv[]) {
                 break;
             case 'l':
                 strDyLibFile = optarg;
-                break;
-            case 'i':
-                bInstall = true;
                 break;
             case 'o':
                 strOutputFile = GetCanonicalizePath(optarg);
@@ -305,7 +298,7 @@ int main(int argc, char *argv[]) {
         ZLog::PrintV("from sign.ipadump.com>>> Archiving: \t%s ... \n", strOutputFile.c_str());
         string strBaseFolder = bundle.m_strAppFolder.substr(0, pos);
         char szOldFolder[PATH_MAX] = {0};
-        if (NULL != getcwd(szOldFolder, PATH_MAX)) {
+        if (nullptr != getcwd(szOldFolder, PATH_MAX)) {
             if (0 == chdir(strBaseFolder.c_str())) {
                 uZipLevel = uZipLevel > 9 ? 9 : uZipLevel;
                 RemoveFile(strOutputFile.c_str());

@@ -2,13 +2,30 @@
 add_rules("mode.debug", "mode.release")
 
 -- add requires
-add_requires("openssl")
+-- add_requires("openssl")
+
+-- target("openssl")
+--     set_kind("static")
+--     add_files("/Users/lake/dounine/github/apple/openssl/build/libcrypto.a", "/Users/lake/dounine/github/apple/openssl/build/libssl.a")
+--     add_includedirs("/Users/lake/dounine/github/apple/openssl/build/include")
+--     set_languages("c99", "c++11")
+
+-- target("dd")
+--     add_ldflags("-L/Users/lake/dounine/github/apple/openssl/build/libcrypto.a","-L/Users/lake/dounine/github/apple/openssl/build/libssl.a")
+--     add_includedirs("/Users/lake/dounine/github/apple/openssl/build/include")
+--     add_linkdirs("/Users/lake/dounine/github/apple/openssl/build")
+--     add_links("crypto", "ssl")
 
 -- define target
 target("zsign")
     set_kind("binary")
+--     add_deps("dd")
     add_files("*.cpp", "common/*.cpp")
-    add_packages("openssl")
+    add_includedirs("/Users/lake/dounine/github/apple/openssl/build/include")
+    add_linkdirs("/Users/lake/dounine/github/apple/openssl/build")
+    add_links("crypto", "ssl")
+--     add_files("/Users/lake/dounine/github/apple/openssl/build/libcrypto.a", "/Users/lake/dounine/github/apple/openssl/build/libssl.a")
+--     add_packages("openssl")
     set_languages("c99", "c++11")
 
 --
