@@ -16,16 +16,23 @@ add_rules("mode.debug", "mode.release")
 --     add_linkdirs("/Users/lake/dounine/github/apple/openssl/build")
 --     add_links("crypto", "ssl")
 
+target("zip")
+    set_kind("static")
+    add_files("zip/*.c")
+    set_languages("c99")
+
 -- define target
 target("zsign")
     set_kind("binary")
+    add_deps("zip")
 --     add_deps("dd")
     add_files("*.cpp", "common/*.cpp")
-    add_includedirs("/Users/lake/dounine/github/apple/openssl/build/include")
-    add_linkdirs("/Users/lake/dounine/github/apple/openssl/build")
-    add_links("crypto", "ssl")
---     add_files("/Users/lake/dounine/github/apple/openssl/build/libcrypto.a", "/Users/lake/dounine/github/apple/openssl/build/libssl.a")
---     add_packages("openssl")
+--引入头文件
+    add_includedirs("/opt/homebrew/Cellar/openssl@3/3.2.0_1/include")
+--引入静态库文件
+    add_links("/opt/homebrew/Cellar/openssl@3/3.2.0_1/lib/libcrypto.a", "/opt/homebrew/Cellar/openssl@3/3.2.0_1/lib/libssl.a")
+--     add_linkdirs("/opt/homebrew/Cellar/openssl@3/3.2.0_1/lib")
+--     add_links("crypto", "ssl")
     set_languages("c99", "c++11")
 
 --

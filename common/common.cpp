@@ -2,6 +2,7 @@
 #include "base64.h"
 #include <sys/stat.h>
 #include <inttypes.h>
+#include "../zip/zip.h"
 #include <openssl/sha.h>
 
 #define PARSEVALIST(szFormatArgs, szArgs)                       \
@@ -151,9 +152,9 @@ bool AppendFile(const char *szFile, const string &strData) {
     return AppendFile(szFile, strData.data(), strData.size());
 }
 
-bool IsFolder(const char *szFolder) {
-    struct stat st;
-    stat(szFolder, &st);
+bool IsFolder(const string &szFolder) {
+    struct stat st{};
+    stat(szFolder.c_str(), &st);
     return S_ISDIR(st.st_mode);
 }
 
@@ -162,15 +163,42 @@ bool IsFolderV(const char *szFormatPath, ...) {
     return IsFolder(szFolder);
 }
 
-bool CreateFolder(const char *szFolder) {
+bool CreateFolder(const string &szFolder) {
     if (!IsFolder(szFolder)) {
 #if defined(WINDOWS)
         return (0 == mkdir(szFolder));
 #else
-        return (0 == mkdir(szFolder, 0755));
+        return (0 == mkdir(szFolder.c_str(), 0755));
 #endif
     }
     return false;
+}
+
+bool CreateFolders(const string &folderPath) {
+    if (folderPath.empty()) {
+        return false;
+    }
+    string folder = folderPath;
+    if (folder[folder.size() - 1] != '/') {
+        folder += "/";
+    }
+    size_t pos = 0;
+    while (true) {
+        pos = folder.find('/', pos + 1);
+        if (pos == string::npos) {
+            break;
+        }
+        string subFolder = folder.substr(0, pos);
+        if (subFolder != ".") {
+            if (!IsFolderExists(subFolder)) {
+                if (!CreateFolder(subFolder)) {
+                    return false;
+                }
+            }
+        }
+    }
+    return true;
+
 }
 
 bool CreateFolderV(const char *szFormatPath, ...) {
@@ -208,11 +236,36 @@ bool RemoveFileV(const char *szFormatPath, ...) {
     return RemoveFile(szFile);
 }
 
+int on_extract_entry(const char *filename, void *arg) {
+    static int i = 0;
+    int n = *(int *) arg;
+    ZLog::PrintV("Extracted: %s (%d of %d)\n", filename, ++i, n);
+    return 0;
+}
+
+void unzip(const string &zipFilePath, const string &destFolderPath) {
+    int a = 0;
+    zip_extract(zipFilePath.c_str(), destFolderPath.c_str(), on_extract_entry, &a);
+}
+
+void zip(const string &filePath, const string &destFilePath) {
+
+}
+
 bool IsFileExists(const char *szFile) {
     if (nullptr == szFile) {
         return false;
     }
     return (0 == access(szFile, F_OK));
+}
+
+bool IsFolderExists(const string &szFolder) {
+    if (szFolder.empty()) {
+        return false;
+    }
+    struct stat st{};
+    ZLog::PrintV("IsFolderExists: %s %i\n", szFolder.c_str(), stat(szFolder.c_str(), &st));
+    return 1 == stat(szFolder.c_str(), &st);
 }
 
 bool IsFileExistsV(const char *szFormatPath, ...) {

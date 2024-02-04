@@ -576,13 +576,6 @@ ZSignAsset::ZSignAsset() {
 
 bool ZSignAsset::Init(const string &strSignerCertFile, const string &strSignerPKeyFile, const string &strProvisionFile,
                       const string &strEntitlementsFile, const string &strPassword) {
-//    ZLog::PrintV(">>> 1 Load Provision File: %s\n%s\n%s\n%s\n%s\n",
-//                 strSignerCertFile.c_str(),
-//                 strSignerPKeyFile.c_str(),
-//                 strProvisionFile.c_str(),
-//                 strEntitlementsFile.c_str(),
-//                 strPassword.c_str()
-//                 );
     ReadFile(strProvisionFile.c_str(), m_strProvisionData);
     ReadFile(strEntitlementsFile.c_str(), m_strEntitlementsData);
     if (m_strProvisionData.empty()) {
@@ -610,18 +603,14 @@ bool ZSignAsset::Init(const string &strSignerCertFile, const string &strSignerPK
     EVP_PKEY *evpPKey = nullptr;
     BIO *bioPKey = BIO_new_file(strSignerPKeyFile.c_str(), "r");
     if (nullptr != bioPKey) {
-        ZLog::PrintV(">>> 1 Load P12 or PrivateKey File: %s\n", strSignerPKeyFile.c_str());
         evpPKey = PEM_read_bio_PrivateKey(bioPKey, nullptr, nullptr, (void *) strPassword.c_str());
         if (nullptr == evpPKey) {
-            ZLog::PrintV(">>> 2 Load P12 or PrivateKey File: %s\n", strSignerPKeyFile.c_str());
             BIO_reset(bioPKey);
             evpPKey = d2i_PrivateKey_bio(bioPKey, nullptr);
             if (nullptr == evpPKey) {
-                ZLog::PrintV(">>> 3 Load P12 or PrivateKey File: %s\n", strSignerPKeyFile.c_str());
                 BIO_reset(bioPKey);
                 PKCS12 *p12 = d2i_PKCS12_bio(bioPKey, nullptr);
                 if (nullptr != p12) {
-                    ZLog::PrintV(">>> 4 Load P12 or PrivateKey File: %s\n", strSignerPKeyFile.c_str());
                     if (0 == PKCS12_parse(p12, strPassword.c_str(), &evpPKey, &x509Cert, nullptr)) {
                         CMSError();
                     }

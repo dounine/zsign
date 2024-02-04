@@ -40,6 +40,10 @@ uint32_t _Swap(uint32_t value);
 
 uint64_t _Swap(uint64_t value);
 
+void unzip(const string &zipFilePath, const string &destFolderPath);
+
+void zip(const string &filePath, const string &destFilePath);
+
 bool ReadFile(const char *szFile, string &strData);
 
 bool ReadFile(string &strData, const char *szFormatPath, ...);
@@ -60,11 +64,15 @@ bool AppendFile(const string &strData, const char *szFormatPath, ...);
 
 bool IsRegularFile(const char *szFile);
 
-bool IsFolder(const char *szFolder);
+bool IsFolder(const string &szFolder);
 
 bool IsFolderV(const char *szFormatPath, ...);
 
-bool CreateFolder(const char *szFolder);
+bool CreateFolder(const string &szFolder);
+
+bool CreateFolders(const string &folderPath);
+
+bool IsFolderExists(const string &szFolder);
 
 bool CreateFolderV(const char *szFormatPath, ...);
 

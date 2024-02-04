@@ -55,11 +55,10 @@ int usage() {
     return -1;
 }
 
-int main(int argc, char *argv[]) {
+int _main(int argc, char *argv[]) {
     ZTimer gtimer;
 
     bool bForce = false;
-    bool bUnzip = false;
     bool bWeakInject = false;
     uint32_t uZipLevel = -1;
 
@@ -133,16 +132,13 @@ int main(int argc, char *argv[]) {
 
     int opt = 0;
     int argslot = -1;
-    while (-1 != (opt = getopt_long(argc, argv, "dfuvhc:k:t:r:m:o:p:e:b:n:z:ql:w", options, &argslot))) {
+    while (-1 != (opt = getopt_long(argc, argv, "dfvhc:k:t:r:m:o:p:e:b:n:z:ql:w", options, &argslot))) {
         switch (opt) {
             case 'd':
                 ZLog::SetLogLever(ZLog::E_DEBUG);
                 break;
             case 'f':
                 bForce = true;
-                break;
-            case 'u':
-                bUnzip = true;
                 break;
             case 'c':
                 strCertFile = optarg;
@@ -218,13 +214,17 @@ int main(int argc, char *argv[]) {
     }
 
     bool bZipFile = false;
+    //只给macho文件使用、例子：./build/macosx/arm64/release/zsign -f -p 1 -l ./ipa/d.dylib -k ./ipa/key.pem -m ./ipa/lake_13_pm.mobileprovision -o ./ipa/hello.ipa ./ipa/Payload/FKCamera\ Full.app/FKCamera\ Full
     if (!IsFolder(strPath.c_str())) {
+        ZLog::PrintV("------ 1 %s\n", strPath.c_str());
         bZipFile = IsZipFile(strPath.c_str());
         if (!bZipFile) { //macho file
+            ZLog::PrintV("------ 2\n");
             ZMachO macho;
             if (macho.Init(strPath.c_str())) {
                 if (!strDyLibFile.empty()) { //inject dylib
                     bool bCreate = false;
+                    ZLog::PrintV("------ 3\n");
                     macho.InjectDyLib(bWeakInject, strDyLibFile.c_str(), bCreate);
                 } else {
                     macho.PrintInfo();
@@ -241,7 +241,7 @@ int main(int argc, char *argv[]) {
         return -1;
     }
 
-
+    ZLog::PrintV("from sign.ipadump.com>>> strTmpFolder:%s \n", strTmpFolder.c_str());
     if (strTmpFolder.empty()) {
         StringFormat(strTmpFolder, "");
     }
@@ -260,7 +260,7 @@ int main(int argc, char *argv[]) {
         //strFolder目录不存在创建多级目录
         SystemExec("mkdir -p '%s'", strFolder.c_str());
 
-        if (bUnzip) {
+        if (IsFolder(strPath)) {
             timer.PrintResult(true, "from sign.ipadump.com>>> sing unzip folder，not unzip");
         } else {
             ZLog::PrintV("from sign.ipadump.com>>> Unzip:\t%s (%s) -> %s ... \n", strPath.c_str(),
@@ -277,6 +277,8 @@ int main(int argc, char *argv[]) {
     }
 
     timer.Reset();
+
+    //开始签名
     bool bRet = bundle.SignFolder(&zSignAsset, strFolder, strBundleId, strBundleVersion, strDisplayName, strDyLibFile,
                                   bForce, bWeakInject, bEnableCache);
     timer.PrintResult(bRet, "from sign.ipadump.com>>> Signed %s!", bRet ? "OK" : "Failed");
@@ -287,6 +289,8 @@ int main(int argc, char *argv[]) {
         StringFormat(strOutputFile, "/tmp/zsign_temp_%llu.ipa", GetMicroSecond());
     }
 
+
+    //文件夹打包压缩
     if (!strOutputFile.empty() && uZipLevel != -1) {
         timer.Reset();
         size_t pos = bundle.m_strAppFolder.rfind("/Payload");

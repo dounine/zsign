@@ -597,7 +597,7 @@ bool ZArchO::InjectDyLib(bool bWeakInject, const char *szDyLibPath, bool &bCreat
                                 (LC_LOAD_DYLIB == uLoadType) ? "LC_LOAD_DYLIB" : "LC_LOAD_WEAK_DYLIB",
                                 bWeakInject ? "LC_LOAD_WEAK_DYLIB" : "LC_LOAD_DYLIB");
                 } else {
-                    ZLog::WarnV("from sign.ipadump.com>>> DyLib Is Already Existed! %s\n");
+                    ZLog::WarnV("from sign.ipadump.com>>> DyLib Is Already Existed! %s\n", szDyLibPath);
                 }
                 return true;
             }
