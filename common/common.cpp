@@ -201,6 +201,21 @@ bool CreateFolders(const string &folderPath) {
 
 }
 
+string GenerateUUID() {
+    string uuid;
+    uuid.resize(36);
+    for (int i = 0; i < 36; i++) {
+        if (i == 14) {
+            uuid[i] = '4';
+        } else if (i == 19) {
+            uuid[i] = '8';
+        } else {
+            uuid[i] = "0123456789abcdef"[rand() % 16];
+        }
+    }
+    return uuid;
+}
+
 bool CreateFolderV(const char *szFormatPath, ...) {
     PARSEVALIST(szFormatPath, szFolder)
     return CreateFolder(szFolder);
@@ -239,7 +254,7 @@ bool RemoveFileV(const char *szFormatPath, ...) {
 int on_extract_entry(const char *filename, void *arg) {
     static int i = 0;
     int n = *(int *) arg;
-    ZLog::PrintV("Extracted: %s (%d of %d)\n", filename, ++i, n);
+    ZLog::PrintV("解压: %s (%d of %d)\n", filename, ++i, n);
     return 0;
 }
 
@@ -273,9 +288,9 @@ bool IsFileExistsV(const char *szFormatPath, ...) {
     return IsFileExists(szFile);
 }
 
-bool IsZipFile(const char *szFile) {
-    if (nullptr != szFile && !IsFolder(szFile)) {
-        FILE *fp = fopen(szFile, "rb");
+bool IsZipFile(const string &szFile) {
+    if (!szFile.empty() && !IsFolder(szFile)) {
+        FILE *fp = fopen(szFile.c_str(), "rb");
         if (nullptr != fp) {
             uint8_t buf[2] = {0};
             fread(buf, 1, 2, fp);

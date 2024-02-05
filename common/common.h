@@ -96,7 +96,9 @@ int64_t GetFileSizeV(const char *szFormatPath, ...);
 
 string GetFileSizeString(const char *szFile);
 
-bool IsZipFile(const char *szFile);
+bool IsZipFile(const string &szFile);
+
+string GenerateUUID();
 
 string GetCanonicalizePath(const char *szPath);
 

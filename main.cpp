@@ -12,22 +12,6 @@
 
 using namespace std;
 
-//uuid生成函数
-string GenerateUUID() {
-    string uuid;
-    uuid.resize(36);
-    for (int i = 0; i < 36; i++) {
-        if (i == 14) {
-            uuid[i] = '4';
-        } else if (i == 19) {
-            uuid[i] = '8';
-        } else {
-            uuid[i] = "0123456789abcdef"[rand() % 16];
-        }
-    }
-    return uuid;
-}
-
 int main() {
     std::cout << "Hello, World!" << std::endl;
 
@@ -44,6 +28,8 @@ int main() {
         return -1;
     }
 
+    cerr << "hello" << endl;
+
     ZTimer timer;
     if (tmpFolderPath.empty()) {
         StringFormat(tmpFolderPath, "/tmp/zsign_folder_%llu_%s", timer.Reset(), GenerateUUID().c_str());
@@ -53,7 +39,11 @@ int main() {
 
     ZLog::PrintV("signing ipa: %s \n", tmpFolderPath.c_str());
 
-    unzip(ipaPath, tmpFolderPath);
+
+    if (IsZipFile(ipaPath)) {
+        unzip(ipaPath, tmpFolderPath);
+    }
+
 
     return 0;
 }
