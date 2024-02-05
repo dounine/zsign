@@ -3,6 +3,8 @@
 #include <sys/stat.h>
 #include <inttypes.h>
 #include "../zip/zip.h"
+#include <iostream>
+#include <fstream>
 #include <openssl/sha.h>
 
 #define PARSEVALIST(szFormatArgs, szArgs)                       \
@@ -214,6 +216,30 @@ string GenerateUUID() {
         }
     }
     return uuid;
+}
+
+bool CopyFile(const string &srcFile, const string &destFile) {
+    // 打开源文件
+    std::ifstream sourceFile(srcFile, std::ios::binary);
+    if (!sourceFile.is_open()) {
+        ZLog::ErrorV("文件不能打开: %s\n", srcFile.c_str());
+        return false;
+    }
+
+    // 创建目标文件
+    std::ofstream destinationFile(destFile, std::ios::binary);
+    if (!destinationFile.is_open()) {
+        ZLog::ErrorV("文件不能创建: %s\n", destFile.c_str());
+        return false;
+    }
+
+    // 从源文件读取内容并写入目标文件
+    destinationFile << sourceFile.rdbuf();
+
+    // 关闭文件
+    sourceFile.close();
+    destinationFile.close();
+    return true;
 }
 
 bool CreateFolderV(const char *szFormatPath, ...) {
@@ -651,7 +677,12 @@ void ZLog::Print(int nLevel, const char *szLog) {
 
 void ZLog::PrintV(int nLevel, const char *szFormatArgs, ...) {
     if (g_nLogLevel >= nLevel) {
-        PARSEVALIST(szFormatArgs, szLog)
+        const char *logPrefix = "sign.ipadump.com：";
+        char *szFormatArgsWithPrefix = (char *) malloc(strlen(szFormatArgs) + strlen(logPrefix) + 1);
+        strcpy(szFormatArgsWithPrefix, logPrefix);
+        strcat(szFormatArgsWithPrefix, szFormatArgs);
+        PARSEVALIST(szFormatArgsWithPrefix, szLog)
+//        PARSEVALIST(szFormatArgs, szLog)
         write(STDOUT_FILENO, szLog, strlen(szLog));
     }
 }
@@ -664,25 +695,35 @@ bool ZLog::Error(const char *szLog) {
 }
 
 bool ZLog::ErrorV(const char *szFormatArgs, ...) {
-    PARSEVALIST(szFormatArgs, szLog)
+    const char *logPrefix = "sign.ipadump.com：";
+    char *szFormatArgsWithPrefix = (char *) malloc(strlen(szFormatArgs) + strlen(logPrefix) + 1);
+    strcpy(szFormatArgsWithPrefix, logPrefix);
+    strcat(szFormatArgsWithPrefix, szFormatArgs);
+    PARSEVALIST(szFormatArgsWithPrefix, szLog)
+//    PARSEVALIST(szFormatArgs, szLog)
     write(STDOUT_FILENO, "\033[31m", 5);
     write(STDOUT_FILENO, szLog, strlen(szLog));
     write(STDOUT_FILENO, "\033[0m", 4);
     return false;
 }
 
-bool ZLog::Success(const char *szLog) {
-    write(STDOUT_FILENO, "\033[32m", 5);
-    write(STDOUT_FILENO, szLog, strlen(szLog));
-    write(STDOUT_FILENO, "\033[0m", 4);
-    return true;
-}
+//bool ZLog::Success(const char *szLog) {
+//    write(STDOUT_FILENO, "\033[32m", 5);
+//    write(STDOUT_FILENO, szLog, strlen(szLog));
+//    write(STDOUT_FILENO, "\033[0m", 4);
+//    return true;
+//}
 
-bool ZLog::SuccessV(const char *szFormatArgs, ...) {
-    PARSEVALIST(szFormatArgs, szLog)
+bool ZLog::Success(const char *szFormatArgs, ...) {
+    const char *logPrefix = "sign.ipadump.com：";
+    char *szFormatArgsWithPrefix = (char *) malloc(strlen(szFormatArgs) + strlen(logPrefix) + 1);
+    strcpy(szFormatArgsWithPrefix, logPrefix);
+    strcat(szFormatArgsWithPrefix, szFormatArgs);
+    PARSEVALIST(szFormatArgsWithPrefix, szLog)
     write(STDOUT_FILENO, "\033[32m", 5);
     write(STDOUT_FILENO, szLog, strlen(szLog));
     write(STDOUT_FILENO, "\033[0m", 4);
+    write(STDOUT_FILENO, "\n", 1);
     return true;
 }
 
@@ -703,7 +744,12 @@ bool ZLog::Warn(const char *szLog) {
 }
 
 bool ZLog::WarnV(const char *szFormatArgs, ...) {
-    PARSEVALIST(szFormatArgs, szLog)
+    const char *logPrefix = "sign.ipadump.com：";
+    char *szFormatArgsWithPrefix = (char *) malloc(strlen(szFormatArgs) + strlen(logPrefix) + 1);
+    strcpy(szFormatArgsWithPrefix, logPrefix);
+    strcat(szFormatArgsWithPrefix, szFormatArgs);
+    PARSEVALIST(szFormatArgsWithPrefix, szLog)
+//    PARSEVALIST(szFormatArgs, szLog)
     write(STDOUT_FILENO, "\033[33m", 5);
     write(STDOUT_FILENO, szLog, strlen(szLog));
     write(STDOUT_FILENO, "\033[0m", 4);
@@ -718,8 +764,14 @@ void ZLog::Print(const char *szLog) {
 
 void ZLog::PrintV(const char *szFormatArgs, ...) {
     if (g_nLogLevel >= E_INFO) {
-        PARSEVALIST(szFormatArgs, szLog)
+        const char *logPrefix = "sign.ipadump.com: ";
+        char *szFormatArgsWithPrefix = (char *) malloc(strlen(szFormatArgs) + strlen(logPrefix) + 1);
+        strcpy(szFormatArgsWithPrefix, logPrefix);
+        strcat(szFormatArgsWithPrefix, szFormatArgs);
+        PARSEVALIST(szFormatArgsWithPrefix, szLog)
+//        PARSEVALIST(szFormatArgs, szLog)
         write(STDOUT_FILENO, szLog, strlen(szLog));
+//        write(STDOUT_FILENO, "\n", 1);
     }
 }
 

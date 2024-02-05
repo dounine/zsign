@@ -68,17 +68,17 @@ bool ZMachO::OpenFile(const char *szPath) {
                 uint8_t *pArchBase = m_pBase + ((FAT_MAGIC == magic) ? pFatArch->offset : LE(pFatArch->offset));
                 uint32_t uArchLength = (FAT_MAGIC == magic) ? pFatArch->size : LE(pFatArch->size);
                 if (!NewArchO(pArchBase, uArchLength)) {
-                    ZLog::ErrorV("from sign.ipadump.com>>> Invalid Arch File In Fat Macho File!\n");
+                    ZLog::ErrorV("Invalid Arch File In Fat Macho File!\n");
                     return false;
                 }
             }
         } else if (MH_MAGIC == magic || MH_CIGAM == magic || MH_MAGIC_64 == magic || MH_CIGAM_64 == magic) {
             if (!NewArchO(m_pBase, (uint32_t) m_sSize)) {
-                ZLog::ErrorV("from sign.ipadump.com>>> Invalid Macho File!\n");
+                ZLog::ErrorV("Invalid Macho File!\n");
                 return false;
             }
         } else {
-            ZLog::ErrorV("from sign.ipadump.com>>> Invalid Macho File (2)!\n");
+            ZLog::ErrorV("Invalid Macho File (2)!\n");
             return false;
         }
     }
@@ -92,7 +92,7 @@ bool ZMachO::CloseFile() {
     }
 
     if ((munmap((void *) m_pBase, m_sSize)) < 0) {
-        ZLog::ErrorV("from sign.ipadump.com>>> CodeSign Write(munmap) Failed! Error: %p, %lu, %s\n", m_pBase, m_sSize,
+        ZLog::ErrorV("CodeSign Write(munmap) Failed! Error: %p, %lu, %s\n", m_pBase, m_sSize,
                      strerror(errno));
         return false;
     }
@@ -146,7 +146,7 @@ bool ZMachO::Sign(ZSignAsset *pSignAsset, bool bForce, string strBundleId, strin
 }
 
 bool ZMachO::ReallocCodeSignSpace() {
-    ZLog::Warn("from sign.ipadump.com>>> Realloc CodeSignature Space... \n");
+    ZLog::Warn("Realloc CodeSignature Space... \n");
 
     vector<uint32_t> arrMachOesSizes;
     for (size_t i = 0; i < m_arrArchOes.size(); i++) {
@@ -154,12 +154,12 @@ bool ZMachO::ReallocCodeSignSpace() {
         StringFormat(strNewArchOFile, "%s.archo.%d", m_strFile.c_str(), i);
         uint32_t uNewLength = m_arrArchOes[i]->ReallocCodeSignSpace(strNewArchOFile);
         if (uNewLength <= 0) {
-            ZLog::Error("from sign.ipadump.com>>> Failed!\n");
+            ZLog::Error("Failed!\n");
             return false;
         }
         arrMachOesSizes.push_back(uNewLength);
     }
-    ZLog::Warn("from sign.ipadump.com>>> Success!\n");
+    ZLog::Warn("Success!\n");
 
     if (1 == m_arrArchOes.size()) {
         CloseFile();
@@ -240,15 +240,14 @@ bool ZMachO::ReallocCodeSignSpace() {
 }
 
 bool ZMachO::InjectDyLib(bool bWeakInject, const char *szDyLibPath, bool &bCreate) {
-    ZLog::WarnV("from sign.ipadump.com>>> Inject DyLib: %s ... \n", szDyLibPath);
-
+    ZLog::PrintV("开始注入库 %s \n", szDyLibPath);
     vector<uint32_t> arrMachOesSizes;
     for (auto & m_arrArchOe : m_arrArchOes) {
         if (!m_arrArchOe->InjectDyLib(bWeakInject, szDyLibPath, bCreate)) {
-            ZLog::Error("from sign.ipadump.com>>> Failed!\n");
+            ZLog::Error("Failed!");
             return false;
         }
     }
-    ZLog::Warn("from sign.ipadump.com>>> Success!\n");
+    ZLog::Success("Success!");
     return true;
 }

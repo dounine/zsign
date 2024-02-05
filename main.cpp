@@ -13,14 +13,13 @@
 using namespace std;
 
 int main() {
-    std::cout << "Hello, World!" << std::endl;
-
     string keyPath = "/Users/lake/dounine/github/ipadump/zsign/ipa/key.pem";
     string mpPath = "/Users/lake/dounine/github/ipadump/zsign/ipa/lake_13_pm.mobileprovision";
     string ipaPath = "/Users/lake/dounine/github/ipadump/zsign/ipa/video.ipa";
     string dylibFilePath = "/Users/lake/dounine/github/ipadump/zsign/ipa/d.dylib";
+    string iconPath = "/Users/lake/dounine/github/ipadump/zsign/ipa/jpg_2_png.png";
 
-    string tmpFolderPath;
+    string tmpFolderPath = "/Users/lake/dounine/github/ipadump/zsign/tmp";
 
 
     ZSignAsset zSignAsset;
@@ -47,19 +46,21 @@ int main() {
 
     string appBundleId;
     string appVersion;
-    string appName;
+    string appName = "你好";
 
     bool force = false;
     bool weakInject = false;
     bool enableCache = false;
 
     ZAppBundle bundle;
+
     bool bRet = bundle.SignFolder(
             &zSignAsset,
             tmpFolderPath,
             appBundleId,
             appVersion,
             appName,
+            iconPath,
             dylibFilePath,
             force,
             weakInject,

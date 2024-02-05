@@ -100,6 +100,8 @@ bool IsZipFile(const string &szFile);
 
 string GenerateUUID();
 
+bool CopyFile(const string &srcFile, const string &destFile);
+
 string GetCanonicalizePath(const char *szPath);
 
 void *MapFile(const char *path, size_t offset, size_t size, size_t *psize, bool ro);
@@ -210,9 +212,9 @@ public:
 
     static bool ErrorV(const char *szFormatArgs, ...);
 
-    static bool Success(const char *szLog);
+//    static bool Success(const char *szLog);
 
-    static bool SuccessV(const char *szFormatArgs, ...);
+    static bool Success(const char *szFormatArgs, ...);
 
     static bool PrintResult(bool bSuccess, const char *szLog);
 

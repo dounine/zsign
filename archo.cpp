@@ -484,7 +484,7 @@ bool ZArchO::Sign(ZSignAsset *pSignAsset, bool bForce, const string &strBundleId
                   const string &strInfoPlistSHA256, const string &strCodeResourcesData) {
     if (nullptr == m_pSignBase) {
         m_bEnoughSpace = false;
-        ZLog::Warn("from sign.ipadump.com>>> Can't Find CodeSignature Segment!\n");
+        ZLog::Warn("Can't Find CodeSignature Segment!\n");
         return false;
     }
 
@@ -501,14 +501,14 @@ bool ZArchO::Sign(ZSignAsset *pSignAsset, bool bForce, const string &strBundleId
     BuildCodeSignature(pSignAsset, bForce, strBundleId, strInfoPlistSHA1, strInfoPlistSHA256, strCodeResourcesSHA1,
                        strCodeResourcesSHA256, strCodeSignBlob);
     if (strCodeSignBlob.empty()) {
-        ZLog::Error("from sign.ipadump.com>>> Build CodeSignature Failed!\n");
+        ZLog::Error("Build CodeSignature Failed!\n");
         return false;
     }
 
     int nSpaceLength = (int) m_uLength - (int) m_uCodeLength - (int) strCodeSignBlob.size();
     if (nSpaceLength < 0) {
         m_bEnoughSpace = false;
-        ZLog::WarnV("from sign.ipadump.com>>> No Enough CodeSignature Space. Length => Now: %d, Need: %d\n",
+        ZLog::WarnV("No Enough CodeSignature Space. Length => Now: %d, Need: %d\n",
                     (int) m_uLength - (int) m_uCodeLength, (int) strCodeSignBlob.size());
         return false;
     }
@@ -550,7 +550,7 @@ uint32_t ZArchO::ReallocCodeSignSpace(const string &strNewFile) {
     auto *pcslc = (codesignature_command *) m_pCodeSignSegment;
     if (nullptr == pcslc) {
         if (m_uLoadCommandsFreeSpace < 4) {
-            ZLog::Error("from sign.ipadump.com>>> Can't Find Free Space Of LoadCommands For CodeSignature!\n");
+            ZLog::Error("Can't Find Free Space Of LoadCommands For CodeSignature!\n");
             return 0;
         }
 
@@ -593,11 +593,11 @@ bool ZArchO::InjectDyLib(bool bWeakInject, const char *szDyLibPath, bool &bCreat
                 if ((bWeakInject && (LC_LOAD_WEAK_DYLIB != uLoadType)) ||
                     (!bWeakInject && (LC_LOAD_DYLIB != uLoadType))) {
                     dlc->cmd = BO((uint32_t) (bWeakInject ? LC_LOAD_WEAK_DYLIB : LC_LOAD_DYLIB));
-                    ZLog::WarnV("from sign.ipadump.com>>> DyLib Load Type Changed! %s -> %s\n",
+                    ZLog::WarnV("DyLib Load Type Changed! %s -> %s\n",
                                 (LC_LOAD_DYLIB == uLoadType) ? "LC_LOAD_DYLIB" : "LC_LOAD_WEAK_DYLIB",
                                 bWeakInject ? "LC_LOAD_WEAK_DYLIB" : "LC_LOAD_DYLIB");
                 } else {
-                    ZLog::WarnV("from sign.ipadump.com>>> DyLib Is Already Existed! %s\n", szDyLibPath);
+                    ZLog::WarnV("DyLib Is Already Existed! %s\n", szDyLibPath);
                 }
                 return true;
             }
@@ -611,7 +611,7 @@ bool ZArchO::InjectDyLib(bool bWeakInject, const char *szDyLibPath, bool &bCreat
     if (m_uLoadCommandsFreeSpace > 0 && m_uLoadCommandsFreeSpace < uDyLibCommandSize) // some bin doesn't have '__text'
     {
         ZLog::Error(
-                "from sign.ipadump.com>>> Can't Find Free Space Of LoadCommands For LC_LOAD_DYLIB Or LC_LOAD_WEAK_DYLIB!\n");
+                "Can't Find Free Space Of LoadCommands For LC_LOAD_DYLIB Or LC_LOAD_WEAK_DYLIB!\n");
         return false;
     }
 

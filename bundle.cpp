@@ -155,7 +155,7 @@ bool ZAppBundle::GenerateCodeResources(const string &strFolder, JValue &jvCodeRe
     jvCodeRes["files"] = JValue(JValue::E_OBJECT);
     jvCodeRes["files2"] = JValue(JValue::E_OBJECT);
 
-    for (auto strKey : setFiles) {
+    for (auto strKey: setFiles) {
         string strFile = strFolder + "/" + strKey;
         string strFileSHA1Base64;
         string strFileSHA256Base64;
@@ -249,7 +249,7 @@ void ZAppBundle::GetNodeChangedFiles(JValue &jvNode) {
 
     vector<string> arrChangedFiles;
     GetChangedFiles(jvNode, arrChangedFiles);
-    for (const auto & arrChangedFile : arrChangedFiles) {
+    for (const auto &arrChangedFile: arrChangedFiles) {
         jvNode["changed"].push_back(arrChangedFile);
     }
 
@@ -270,7 +270,7 @@ bool ZAppBundle::SignNode(JValue &jvNode) {
     if (jvNode.has("files")) {
         for (size_t i = 0; i < jvNode["files"].size(); i++) {
             const char *szFile = jvNode["files"][i].asCString();
-            ZLog::PrintV("from sign.ipadump.com>>> SignFile: \t%s\n", szFile);
+            ZLog::PrintV("SignFile: \t%s\n", szFile);
             ZMachO macho;
             if (!macho.InitV("%s/%s", m_strAppFolder.c_str(), szFile)) {
                 return false;
@@ -291,7 +291,7 @@ bool ZAppBundle::SignNode(JValue &jvNode) {
     b64.Decode(jvNode["sha2"].asCString(), strInfoPlistSHA256);
     if (strBundleId.empty() || strBundleExe.empty() || strInfoPlistSHA1.empty() || strInfoPlistSHA256.empty()) {
         ZLog::ErrorV(
-                "from sign.ipadump.com>>> Can't Get BundleID or BundleExecute or Info.plist SHASum in Info.plist! %s\n",
+                "Can't Get BundleID or BundleExecute or Info.plist SHASum in Info.plist! %s\n",
                 strFolder.c_str());
         return false;
     }
@@ -303,13 +303,13 @@ bool ZAppBundle::SignNode(JValue &jvNode) {
     }
 
     string strExePath = strBaseFolder + "/" + strBundleExe;
-    ZLog::PrintV("from sign.ipadump.com>>> SignFolder: %s, (%s)\n",
+    ZLog::PrintV("SignFolder: %s, (%s)\n",
                  ("/" == strFolder) ? basename((char *) m_strAppFolder.c_str()) : strFolder.c_str(),
                  strBundleExe.c_str());
 
     ZMachO macho;
     if (!macho.Init(strExePath.c_str())) {
-        ZLog::ErrorV("from sign.ipadump.com>>> Can't Parse BundleExecute File! %s\n", strExePath.c_str());
+        ZLog::ErrorV("Can't Parse BundleExecute File! %s\n", strExePath.c_str());
         return false;
     }
 
@@ -323,7 +323,7 @@ bool ZAppBundle::SignNode(JValue &jvNode) {
 
     if (m_bForceSign || jvCodeRes.isNull()) { //create
         if (!GenerateCodeResources(strBaseFolder, jvCodeRes)) {
-            ZLog::ErrorV("from sign.ipadump.com>>> Create CodeResources Failed! %s\n", strBaseFolder.c_str());
+            ZLog::ErrorV("Create CodeResources Failed! %s\n", strBaseFolder.c_str());
             return false;
         }
     } else if (jvNode.has("changed")) { //use existsed
@@ -334,7 +334,7 @@ bool ZAppBundle::SignNode(JValue &jvNode) {
             string strFileSHA1Base64;
             string strFileSHA256Base64;
             if (!SHASumBase64File(strRealFile.c_str(), strFileSHA1Base64, strFileSHA256Base64)) {
-                ZLog::ErrorV("from sign.ipadump.com>>> Can't Get Changed File SHASumBase64! %s", strFile.c_str());
+                ZLog::ErrorV("Can't Get Changed File SHASumBase64! %s", strFile.c_str());
                 return false;
             }
 
@@ -360,7 +360,7 @@ bool ZAppBundle::SignNode(JValue &jvNode) {
     bool bForceSign = m_bForceSign;
     if ("/" == strFolder && !dylibPaths.empty()) {
         for (auto &fPath: dylibPaths) {
-            ZLog::PrintV("from sign.ipadump.com>>> InjectDyLib: \t%s\n", fPath.c_str());
+            ZLog::PrintV("InjectDyLib: \t%s\n", fPath.c_str());
             macho.InjectDyLib(m_bWeakInject, fPath.c_str(), bForceSign);
         }
     }
@@ -402,6 +402,7 @@ bool ZAppBundle::SignFolder(ZSignAsset *pSignAsset,
                             const string &strBundleID,
                             const string &strBundleVersion,
                             const string &strDisplayName,
+                            const string &strIconPath,
                             const string &strDyLibFile,
                             bool bForce,
                             bool bWeakInject,
@@ -414,31 +415,32 @@ bool ZAppBundle::SignFolder(ZSignAsset *pSignAsset,
     }
 
     if (!FindAppFolder(strFolder, m_strAppFolder)) {
-        ZLog::ErrorV("from sign.ipadump.com>>> Can't Find App Folder! %s\n", strFolder.c_str());
+        ZLog::ErrorV("找不到应用目录 %s\n", strFolder.c_str());
         return false;
     }
 
-    if (!strBundleID.empty() || !strDisplayName.empty() || !strBundleVersion.empty()) { //modify bundle id
+    if (!strBundleID.empty() || !strIconPath.empty() || !strDisplayName.empty() ||
+        !strBundleVersion.empty()) { //modify bundle id
         JValue jvInfoPlist;
         if (jvInfoPlist.readPListPath("%s/Info.plist", m_strAppFolder.c_str())) {
             m_bForceSign = true;
             if (!strBundleID.empty()) {
                 string strOldBundleID = jvInfoPlist["CFBundleIdentifier"];
                 jvInfoPlist["CFBundleIdentifier"] = strBundleID;
-                ZLog::PrintV("from sign.ipadump.com>>> BundleId: \t%s -> %s\n", strOldBundleID.c_str(),
+                ZLog::PrintV("BundleId: \t%s -> %s\n", strOldBundleID.c_str(),
                              strBundleID.c_str());
 
                 //modify plugins bundle id
                 vector<string> arrPlugIns;
                 GetPlugIns(m_strAppFolder, arrPlugIns);
-                for (auto & strPlugin : arrPlugIns) {
+                for (auto &strPlugin: arrPlugIns) {
                     JValue jvPlugInInfoPlist;
                     if (jvPlugInInfoPlist.readPListPath("%s/Info.plist", strPlugin.c_str())) {
                         string strOldPlugInBundleID = jvPlugInInfoPlist["CFBundleIdentifier"];
                         string strNewPlugInBundleID = strOldPlugInBundleID;
                         StringReplace(strNewPlugInBundleID, strOldBundleID, strBundleID);
                         jvPlugInInfoPlist["CFBundleIdentifier"] = strNewPlugInBundleID;
-                        ZLog::PrintV("from sign.ipadump.com>>> BundleId: \t%s -> %s, PlugIn\n",
+                        ZLog::PrintV("BundleId: \t%s -> %s, PlugIn\n",
                                      strOldPlugInBundleID.c_str(),
                                      strNewPlugInBundleID.c_str());
 
@@ -448,7 +450,7 @@ bool ZAppBundle::SignFolder(ZSignAsset *pSignAsset,
                             StringReplace(strNewWKCBundleID, strOldBundleID, strBundleID);
                             jvPlugInInfoPlist["WKCompanionAppBundleIdentifier"] = strNewWKCBundleID;
                             ZLog::PrintV(
-                                    "from sign.ipadump.com>>> BundleId: \t%s -> %s, PlugIn-WKCompanionAppBundleIdentifier\n",
+                                    "BundleId: \t%s -> %s, PlugIn-WKCompanionAppBundleIdentifier\n",
                                     strOldWKCBundleID.c_str(), strNewWKCBundleID.c_str());
                         }
 
@@ -461,7 +463,7 @@ bool ZAppBundle::SignFolder(ZSignAsset *pSignAsset,
                                     StringReplace(strNewWKBundleID, strOldBundleID, strBundleID);
                                     jvPlugInInfoPlist["NSExtension"]["NSExtensionAttributes"]["WKAppBundleIdentifier"] = strNewWKBundleID;
                                     ZLog::PrintV(
-                                            "from sign.ipadump.com>>> BundleId: \t%s -> %s, NSExtension-NSExtensionAttributes-WKAppBundleIdentifier\n",
+                                            "BundleId: \t%s -> %s, NSExtension-NSExtensionAttributes-WKAppBundleIdentifier\n",
                                             strOldWKBundleID.c_str(), strNewWKBundleID.c_str());
                                 }
                             }
@@ -474,23 +476,62 @@ bool ZAppBundle::SignFolder(ZSignAsset *pSignAsset,
 
             if (!strDisplayName.empty()) {
                 string strOldDisplayName = jvInfoPlist["CFBundleDisplayName"];
+                if (strOldDisplayName.empty()) {
+                    strOldDisplayName = jvInfoPlist["CFBundleName"].asString();
+                }
                 jvInfoPlist["CFBundleName"] = strDisplayName;
                 jvInfoPlist["CFBundleDisplayName"] = strDisplayName;
-                ZLog::PrintV("from sign.ipadump.com>> BundleName: %s -> %s\n", strOldDisplayName.c_str(),
+                ZLog::PrintV("BundleName: %s -> %s\n", strOldDisplayName.c_str(),
                              strDisplayName.c_str());
+            }
+
+            if (!strIconPath.empty()) {
+                if (!IsFileExists(strIconPath.c_str())) {
+                    ZLog::ErrorV("> Can't Find Icon File! %s\n", strIconPath.c_str());
+                    return false;
+                }
+
+                //只能使用png图片，其它格式的图片显示不了
+                string iconName = "AppIcon-sign_ipadump_com";
+                string iconDestPath = m_strAppFolder + "/" + iconName + ".png";
+                if (CopyFile(strIconPath, iconDestPath)) {
+                    ZLog::PrintV("图标复制 %s -> %s\n", strIconPath.c_str(), iconDestPath.c_str());
+                }
+
+                vector<string> arrIconFiles;
+                arrIconFiles.push_back("CFBundleIcons");
+                arrIconFiles.push_back("CFBundleIcons~ipad");
+
+                for (auto &iconType: arrIconFiles) {
+                    auto &app_dict = jvInfoPlist[iconType];
+                    auto &bundlePrimaryIcon = app_dict["CFBundlePrimaryIcon"];
+                    if (bundlePrimaryIcon.isNull()) {
+                        bundlePrimaryIcon = app_dict["UINewsstandIcon"];
+                    }
+                    auto &iconFiles = bundlePrimaryIcon["CFBundleIconFiles"];
+                    if (iconFiles.isNull()) {
+                        iconFiles = bundlePrimaryIcon["CFBundleIconFiles"];
+                    }
+                    string strOldIconName = iconFiles[0].asString();
+                    iconFiles = JValue(JValue::E_ARRAY);
+                    iconFiles.push_back(iconName);
+                    jvInfoPlist[iconType] = app_dict;
+                    ZLog::PrintV("%s: %s -> %s\n", iconType.c_str(), strOldIconName.c_str(),
+                                 (iconName + ".png").c_str());
+                }
             }
 
             if (!strBundleVersion.empty()) {
                 string strOldBundleVersion = jvInfoPlist["CFBundleVersion"];
                 jvInfoPlist["CFBundleVersion"] = strBundleVersion;
                 jvInfoPlist["CFBundleShortVersionString"] = strBundleVersion;
-                ZLog::PrintV("from sign.ipadump.com>>> BundleVersion: %s -> %s\n", strOldBundleVersion.c_str(),
+                ZLog::PrintV("BundleVersion: %s -> %s\n", strOldBundleVersion.c_str(),
                              strBundleVersion.c_str());
             }
 
             jvInfoPlist.writePListPath("%s/Info.plist", m_strAppFolder.c_str());
         } else {
-            ZLog::ErrorV("from sign.ipadump.com>>> Can't Find App's Info.plist! %s\n", strFolder.c_str());
+            ZLog::ErrorV("Can't Find App's Info.plist! %s\n", strFolder.c_str());
             return false;
         }
     }
@@ -513,7 +554,7 @@ bool ZAppBundle::SignFolder(ZSignAsset *pSignAsset,
 
     if (!WriteFile(pSignAsset->m_strProvisionData, "%s/embedded.mobileprovision",
                    m_strAppFolder.c_str())) { //embedded.mobileprovision
-        ZLog::ErrorV("from sign.ipadump.com>>> Can't Write embedded.mobileprovision!\n");
+        ZLog::ErrorV("Can't Write embedded.mobileprovision!\n");
         return false;
     }
 //    if (!strDyLibFile.empty()) { //inject dylib
@@ -552,7 +593,7 @@ bool ZAppBundle::SignFolder(ZSignAsset *pSignAsset,
                 if (!strDyLibData.empty()) {
                     string strFileName = basename((char *) file.c_str());
                     if (WriteFile(strDyLibData, "%s/%s", m_strAppFolder.c_str(), strFileName.c_str())) {
-                        ZLog::PrintV("from sign.ipadump.com>>> Inject %s\n", file.c_str());
+                        ZLog::PrintV("Inject %s\n", file.c_str());
                         string tmpDyLibPath;
                         StringFormat(tmpDyLibPath, "@executable_path/%s", strFileName.c_str());
                         dylibPaths.insert(tmpDyLibPath);
@@ -565,7 +606,7 @@ bool ZAppBundle::SignFolder(ZSignAsset *pSignAsset,
             if (!strDyLibData.empty()) {
                 string strFileName = basename((char *) strDyLibFile.c_str());
                 if (WriteFile(strDyLibData, "%s/%s", m_strAppFolder.c_str(), strFileName.c_str())) {
-                    ZLog::PrintV("from sign.ipadump.com>>> Inject %s\n", strDyLibFile.c_str());
+                    ZLog::PrintV("Inject %s\n", strDyLibFile.c_str());
                     string tmpDyLibPath;
                     StringFormat(tmpDyLibPath, "@executable_path/%s", strFileName.c_str());
                     dylibPaths.insert(tmpDyLibPath);
@@ -586,7 +627,7 @@ bool ZAppBundle::SignFolder(ZSignAsset *pSignAsset,
         jvRoot["root"] = m_strAppFolder;
         if (!GetSignFolderInfo(m_strAppFolder, jvRoot, true)) {
             ZLog::ErrorV(
-                    "from sign.ipadump.com>>> Can't Get BundleID, BundleVersion, or BundleExecute in Info.plist! %s\n",
+                    "Can't Get BundleID, BundleVersion, or BundleExecute in Info.plist! %s\n",
                     m_strAppFolder.c_str());
             return false;
         }
@@ -598,13 +639,13 @@ bool ZAppBundle::SignFolder(ZSignAsset *pSignAsset,
         jvRoot.readPath("./.zsign_cache/%s.json", strCacheName.c_str());
     }
 
-    ZLog::PrintV("from sign.ipadump.com>>> Signing: \t%s ...\n", m_strAppFolder.c_str());
-    ZLog::PrintV("from sign.ipadump.com>>> AppName: \t%s\n", jvRoot["name"].asCString());
-    ZLog::PrintV("from sign.ipadump.com>>> BundleId: \t%s\n", jvRoot["bid"].asCString());
-    ZLog::PrintV("from sign.ipadump.com>>> BundleVer: \t%s\n", jvRoot["bver"].asCString());
-    ZLog::PrintV("from sign.ipadump.com>>> TeamId: \t%s\n", m_pSignAsset->m_strTeamId.c_str());
-    ZLog::PrintV("from sign.ipadump.com>>> SubjectCN: \t%s\n", m_pSignAsset->m_strSubjectCN.c_str());
-    ZLog::PrintV("from sign.ipadump.com>>> ReadCache: \t%s\n", m_bForceSign ? "NO" : "YES");
+    ZLog::PrintV("Signing: \t%s ...\n", m_strAppFolder.c_str());
+    ZLog::PrintV("AppName: \t%s\n", jvRoot["name"].asCString());
+    ZLog::PrintV("BundleId: \t%s\n", jvRoot["bid"].asCString());
+    ZLog::PrintV("BundleVer: \t%s\n", jvRoot["bver"].asCString());
+    ZLog::PrintV("TeamId: \t%s\n", m_pSignAsset->m_strTeamId.c_str());
+    ZLog::PrintV("SubjectCN: \t%s\n", m_pSignAsset->m_strSubjectCN.c_str());
+    ZLog::PrintV("ReadCache: \t%s\n", m_bForceSign ? "NO" : "YES");
 
     if (SignNode(jvRoot)) {
         if (bEnableCache) {

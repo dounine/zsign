@@ -36,7 +36,7 @@ list(APPEND LIB_LIST ${ZLIB_LIBRARIES})
 
 # Main sources
 
-file(GLOB SRC common/*.cpp ./**.cpp zip/*.c)
+file(GLOB SRC common/*.cpp ./**.cpp zip/*.c cximage/*.cpp)
 
 add_executable(zsign ${SRC}
         main.cpp

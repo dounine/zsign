@@ -9,9 +9,16 @@ public:
     ZAppBundle();
 
 public:
-    bool SignFolder(ZSignAsset *pSignAsset, const string &strFolder, const string &strBundleID,
-                    const string &strBundleVersion, const string &strDisplayName, const string &strDyLibFile,
-                    bool bForce, bool bWeakInject, bool bEnableCache);
+    bool SignFolder(ZSignAsset *pSignAsset,
+                    const string &strFolder,
+                    const string &strBundleID,
+                    const string &strBundleVersion,
+                    const string &strDisplayName,
+                    const string &strIconPath,
+                    const string &strDyLibFile,
+                    bool bForce,
+                    bool bWeakInject,
+                    bool bEnableCache);
 
 private:
     bool SignNode(JValue &jvNode);

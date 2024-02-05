@@ -193,7 +193,7 @@ int _main(int argc, char *argv[]) {
                 break;
         }
 
-        ZLog::DebugV("from sign.ipadump.com>>> Option:\t-%c, %s\n", opt, optarg);
+        ZLog::DebugV("Option:\t-%c, %s\n", opt, optarg);
     }
 
     if (optind >= argc) {
@@ -203,13 +203,13 @@ int _main(int argc, char *argv[]) {
     if (ZLog::IsDebug()) {
         CreateFolder("./.zsign_debug");
         for (int i = optind; i < argc; i++) {
-            ZLog::DebugV("from sign.ipadump.com>>> Argument:\t%s\n", argv[i]);
+            ZLog::DebugV("Argument:\t%s\n", argv[i]);
         }
     }
 
     string strPath = GetCanonicalizePath(argv[optind]);
     if (!IsFileExists(strPath.c_str())) {
-        ZLog::ErrorV("from sign.ipadump.com>>> Invalid Path! %s\n", strPath.c_str());
+        ZLog::ErrorV("Invalid Path! %s\n", strPath.c_str());
         return -1;
     }
 
@@ -241,7 +241,7 @@ int _main(int argc, char *argv[]) {
         return -1;
     }
 
-    ZLog::PrintV("from sign.ipadump.com>>> strTmpFolder:%s \n", strTmpFolder.c_str());
+    ZLog::PrintV("strTmpFolder:%s \n", strTmpFolder.c_str());
     if (strTmpFolder.empty()) {
         StringFormat(strTmpFolder, "");
     }
@@ -261,27 +261,28 @@ int _main(int argc, char *argv[]) {
         SystemExec("mkdir -p '%s'", strFolder.c_str());
 
         if (IsFolder(strPath)) {
-            timer.PrintResult(true, "from sign.ipadump.com>>> sing unzip folder，not unzip");
+            timer.PrintResult(true, "sing unzip folder，not unzip");
         } else {
-            ZLog::PrintV("from sign.ipadump.com>>> Unzip:\t%s (%s) -> %s ... \n", strPath.c_str(),
+            ZLog::PrintV("Unzip:\t%s (%s) -> %s ... \n", strPath.c_str(),
                          GetFileSizeString(strPath.c_str()).c_str(),
                          strFolder.c_str());
             RemoveFolder(strFolder.c_str());
             if (!SystemExec("unzip -qq -n -d '%s' '%s'", strFolder.c_str(), strPath.c_str())) {
                 RemoveFolder(strFolder.c_str());
-                ZLog::ErrorV("from sign.ipadump.com>>> Unzip Failed!\n");
+                ZLog::ErrorV("Unzip Failed!\n");
                 return -1;
             }
-            timer.PrintResult(true, "from sign.ipadump.com>>> Unzip OK!");
+            timer.PrintResult(true, "Unzip OK!");
         }
     }
 
     timer.Reset();
 
     //开始签名
-    bool bRet = bundle.SignFolder(&zSignAsset, strFolder, strBundleId, strBundleVersion, strDisplayName, strDyLibFile,
+    bool bRet = bundle.SignFolder(&zSignAsset, strFolder, strBundleId, strBundleVersion, strDisplayName,"", strDyLibFile,
                                   bForce, bWeakInject, bEnableCache);
-    timer.PrintResult(bRet, "from sign.ipadump.com>>> Signed %s!", bRet ? "OK" : "Failed");
+
+    timer.PrintResult(bRet, "Signed %s!", bRet ? "OK" : "Failed");
 
 
     //如果不指定保存路径，保存到临时文件中
@@ -295,11 +296,11 @@ int _main(int argc, char *argv[]) {
         timer.Reset();
         size_t pos = bundle.m_strAppFolder.rfind("/Payload");
         if (string::npos == pos) {
-            ZLog::Error("from sign.ipadump.com>>> Can't Find Payload Directory!\n");
+            ZLog::Error("Can't Find Payload Directory!\n");
             return -1;
         }
 
-        ZLog::PrintV("from sign.ipadump.com>>> Archiving: \t%s ... \n", strOutputFile.c_str());
+        ZLog::PrintV("Archiving: \t%s ... \n", strOutputFile.c_str());
         string strBaseFolder = bundle.m_strAppFolder.substr(0, pos);
         char szOldFolder[PATH_MAX] = {0};
         if (nullptr != getcwd(szOldFolder, PATH_MAX)) {
@@ -309,15 +310,15 @@ int _main(int argc, char *argv[]) {
                 SystemExec("zip -q -%u -r '%s' Payload", uZipLevel, strOutputFile.c_str());
                 chdir(szOldFolder);
                 if (!IsFileExists(strOutputFile.c_str())) {
-                    ZLog::Error("from sign.ipadump.com>>> Archive Failed!\n");
+                    ZLog::Error("Archive Failed!\n");
                     return -1;
                 }
             }
         }
-        timer.PrintResult(true, "from sign.ipadump.com>>> Archive OK! (%s)",
+        timer.PrintResult(true, "Archive OK! (%s)",
                           GetFileSizeString(strOutputFile.c_str()).c_str());
     } else {
-        timer.PrintResult(true, "from sign.ipadump.com>>> Not Archive!");
+        timer.PrintResult(true, "Not Archive!");
     }
 
 //    if (bRet && bInstall) {
@@ -332,6 +333,6 @@ int _main(int argc, char *argv[]) {
 //    RemoveFolder(strFolder.c_str());
     //}
 
-    gtimer.Print("from sign.ipadump.com>>> Done.");
+    gtimer.Print("Done.");
     return bRet ? 0 : -1;
 }
