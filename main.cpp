@@ -18,6 +18,7 @@ int main() {
     string keyPath = "/Users/lake/dounine/github/ipadump/zsign/ipa/key.pem";
     string mpPath = "/Users/lake/dounine/github/ipadump/zsign/ipa/lake_13_pm.mobileprovision";
     string ipaPath = "/Users/lake/dounine/github/ipadump/zsign/ipa/video.ipa";
+    string dylibFilePath = "/Users/lake/dounine/github/ipadump/zsign/ipa/d.dylib";
 
     string tmpFolderPath;
 
@@ -44,6 +45,27 @@ int main() {
         unzip(ipaPath, tmpFolderPath);
     }
 
+    string appBundleId;
+    string appVersion;
+    string appName;
+
+    bool force = false;
+    bool weakInject = false;
+    bool enableCache = false;
+
+    ZAppBundle bundle;
+    bool bRet = bundle.SignFolder(
+            &zSignAsset,
+            tmpFolderPath,
+            appBundleId,
+            appVersion,
+            appName,
+            dylibFilePath,
+            force,
+            weakInject,
+            enableCache
+    );
+    timer.PrintResult(bRet, "from sign.ipadump.com>>> Signed %s!", bRet ? "OK" : "Failed");
 
     return 0;
 }
