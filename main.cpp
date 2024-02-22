@@ -7,10 +7,74 @@
 #include "macho.h"
 #include "bundle.h"
 #include <getopt.h>
+#include "main.h"
 #include <iostream>
 #include <string>
 
 using namespace std;
+
+bool sign_ipa(
+        const char *ipa_path,
+        const char *key_path,
+        const char *mp_path,
+        const char *dylib_file_path,
+        const char *icon_path,
+        const char *tmp_folder_path,
+        char *error
+) {
+    string tmpFolderPath = tmp_folder_path;
+    string keyPath = key_path;
+    string mpPath = mp_path;
+    string ipaPath = ipa_path;
+    string dylibFilePath = dylib_file_path;
+    string iconPath = icon_path;
+
+    ZSignAsset zSignAsset;
+    if (!zSignAsset.Init("", keyPath, mpPath, "", "1")) {
+//        cerr << "init sign asset failed" << endl;
+        snprintf(error, 1024, "init sign asset failed");
+        return false;
+    }
+
+    ZTimer timer;
+    if (tmpFolderPath.empty()) {
+        StringFormat(tmpFolderPath, "/tmp/zsign_folder_%llu_%s", timer.Reset(), GenerateUUID().c_str());
+    }
+
+    CreateFolder(tmpFolderPath);
+
+    ZLog::PrintV("signing ipa: %s \n", tmpFolderPath.c_str());
+
+
+    if (IsZipFile(ipaPath)) {
+        unzip(ipaPath, tmpFolderPath);
+    }
+
+    string appBundleId;
+    string appVersion;
+    string appName = "你好";
+
+    bool force = false;
+    bool weakInject = false;
+    bool enableCache = false;
+
+    ZAppBundle bundle;
+
+    bool bRet = bundle.SignFolder(
+            &zSignAsset,
+            tmpFolderPath,
+            appBundleId,
+            appVersion,
+            appName,
+            iconPath,
+            dylibFilePath,
+            force,
+            weakInject,
+            enableCache
+    );
+    timer.PrintResult(bRet, "from sign.ipadump.com>>> Signed %s!", bRet ? "OK" : "Failed");
+    return true;
+}
 
 int main() {
     string keyPath = "/Users/lake/dounine/github/ipadump/zsign/ipa/key.pem";
@@ -27,8 +91,6 @@ int main() {
         cerr << "init sign asset failed" << endl;
         return -1;
     }
-
-    cerr << "hello" << endl;
 
     ZTimer timer;
     if (tmpFolderPath.empty()) {

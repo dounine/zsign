@@ -2,7 +2,7 @@
 add_rules("mode.debug", "mode.release")
 
 -- add requires
--- add_requires("openssl")
+add_requires("openssl")
 
 -- target("openssl")
 --     set_kind("static")
@@ -23,16 +23,17 @@ target("zip")
 
 -- define target
 target("zsign")
-    set_kind("binary")
+    set_kind("shared")
     add_deps("zip")
+    add_packages("openssl")
 --     add_deps("dd")
     add_files("*.cpp", "common/*.cpp")
 --引入头文件
-    add_includedirs("/opt/homebrew/Cellar/openssl@3/3.2.0_1/include")
+--     add_includedirs("/opt/homebrew/Cellar/openssl@3/3.2.0_1/include")
 --引入静态库文件
-    add_links("/opt/homebrew/Cellar/openssl@3/3.2.0_1/lib/libcrypto.a", "/opt/homebrew/Cellar/openssl@3/3.2.0_1/lib/libssl.a")
+--     add_links("/opt/homebrew/Cellar/openssl@3/3.2.0_1/lib/libcrypto.a", "/opt/homebrew/Cellar/openssl@3/3.2.0_1/lib/libssl.a")
 --     add_linkdirs("/opt/homebrew/Cellar/openssl@3/3.2.0_1/lib")
---     add_links("crypto", "ssl")
+    add_links("crypto", "ssl")
     set_languages("c99", "c++11")
 
 --
