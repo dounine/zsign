@@ -47,7 +47,8 @@ bool sign_ipa(
 
 
     if (IsZipFile(ipaPath)) {
-        unzip(ipaPath, tmpFolderPath);
+        SystemExec("unzip -qq -n -d '%s' '%s'", tmpFolderPath.c_str(), ipaPath.c_str());
+//        unzip(ipaPath, tmpFolderPath);
     }
 
     string appBundleId;
@@ -103,7 +104,8 @@ int main() {
 
 
     if (IsZipFile(ipaPath)) {
-        unzip(ipaPath, tmpFolderPath);
+        SystemExec("unzip -qq -n -d '%s' '%s'", tmpFolderPath.c_str(), ipaPath.c_str());
+//        unzip(ipaPath, tmpFolderPath);
     }
 
     string appBundleId;

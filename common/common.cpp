@@ -2,7 +2,7 @@
 #include "base64.h"
 #include <sys/stat.h>
 #include <inttypes.h>
-#include "../zip/zip.h"
+//#include "../zip/zip.h"
 #include <iostream>
 #include <fstream>
 #include <openssl/sha.h>
@@ -277,21 +277,21 @@ bool RemoveFileV(const char *szFormatPath, ...) {
     return RemoveFile(szFile);
 }
 
-int on_extract_entry(const char *filename, void *arg) {
-    static int i = 0;
-    int n = *(int *) arg;
-    ZLog::PrintV("解压: %s (%d of %d)\n", filename, ++i, n);
-    return 0;
-}
-
-void unzip(const string &zipFilePath, const string &destFolderPath) {
-    int a = 0;
-    zip_extract(zipFilePath.c_str(), destFolderPath.c_str(), on_extract_entry, &a);
-}
-
-void zip(const string &filePath, const string &destFilePath) {
-
-}
+//int on_extract_entry(const char *filename, void *arg) {
+//    static int i = 0;
+//    int n = *(int *) arg;
+//    ZLog::PrintV("解压: %s (%d of %d)\n", filename, ++i, n);
+//    return 0;
+//}
+//
+//void unzip(const string &zipFilePath, const string &destFolderPath) {
+//    int a = 0;
+//    zip_extract(zipFilePath.c_str(), destFolderPath.c_str(), on_extract_entry, &a);
+//}
+//
+//void zip(const string &filePath, const string &destFilePath) {
+//
+//}
 
 bool IsFileExists(const char *szFile) {
     if (nullptr == szFile) {

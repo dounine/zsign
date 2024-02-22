@@ -4,3 +4,4 @@ ipa/
 .idea/
 .xmake/
 .zsign_cache/
+tmp/

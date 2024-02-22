@@ -40,9 +40,9 @@ uint32_t _Swap(uint32_t value);
 
 uint64_t _Swap(uint64_t value);
 
-void unzip(const string &zipFilePath, const string &destFolderPath);
-
-void zip(const string &filePath, const string &destFilePath);
+//void unzip(const string &zipFilePath, const string &destFolderPath);
+//
+//void zip(const string &filePath, const string &destFilePath);
 
 bool ReadFile(const char *szFile, string &strData);
 
